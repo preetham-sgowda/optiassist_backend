@@ -31,16 +31,15 @@ async function authenticateToken(req, res, next) {
   const token = authHeader.split(" ")[1];
 
   try {
-    // Step 1: Decode the JWT
-    const payload = jwt.verify(token, config.supabaseJwtSecret, {
-      algorithms: ["HS256"],
-      audience: "authenticated",
-    });
+    // Step 1: Verify the token with Supabase
+    // This is more robust as it handles HS256, ES256, and EdDSA automatically.
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
 
-    const userId = payload.sub;
-    if (!userId) {
-      return res.status(401).json({ error: "Invalid token: missing user ID." });
+    if (authError || !authUser) {
+      return res.status(401).json({ error: "Invalid or expired token." });
     }
+
+    const userId = authUser.id;
 
     // Step 2: Fetch user profile + role from Supabase
     const { data: profile, error } = await supabase

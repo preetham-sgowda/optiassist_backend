@@ -40,10 +40,17 @@ router.get(
         // Recent assignments
         const { data: recent } = await supabase
           .from("assets")
-          .select("asset_tag, name, assigned_to, status, created_at")
+          .select("asset_tag, name, status, created_at, profiles(full_name)")
           .eq("status", "assigned")
           .order("created_at", { ascending: false })
           .limit(10);
+
+        const formattedRecent = (recent || []).map(r => ({
+          asset_tag: r.asset_tag,
+          name: r.name,
+          assigned_to: r.profiles?.full_name || "Unknown",
+          date: new Date(r.created_at).toISOString().split('T')[0]
+        }));
 
         res.json({
           total_assets: total,
@@ -53,7 +60,7 @@ router.get(
           retired_assets: retired,
           lost_assets: lost,
           total_employees: totalEmployees || 0,
-          recent_assignments: recent || [],
+          recent_assignments: formattedRecent,
         });
       } else {
         // ── Employee Dashboard Stats ──────────────────────────

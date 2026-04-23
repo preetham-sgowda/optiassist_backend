@@ -109,6 +109,32 @@ router.post(
 );
 
 /**
+ * GET /auth/users
+ * Admin/Manager: List all users and their roles.
+ */
+router.get(
+  "/users",
+  authenticateToken,
+  requirePrivilege("view:all_employees"),
+  async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*, roles(*)")
+        .order("full_name", { ascending: true });
+
+      if (error) {
+        return res.status(500).json({ error: "Failed to fetch users." });
+      }
+
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: "Internal server error." });
+    }
+  }
+);
+
+/**
  * GET /auth/roles
  * Admin-only: List all available roles.
  */

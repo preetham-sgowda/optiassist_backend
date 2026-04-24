@@ -35,7 +35,7 @@ router.get("/", requirePrivilege("view:all_assets"), async (req, res) => {
       per_page = 20,
     } = req.query;
 
-    let query = supabase.from("assets").select("*", { count: "exact" });
+    let query = supabase.from("assets").select("*, profiles!assigned_to(full_name)", { count: "exact" });
 
     if (statusFilter) query = query.eq("status", statusFilter);
     if (category) query = query.eq("category", category);

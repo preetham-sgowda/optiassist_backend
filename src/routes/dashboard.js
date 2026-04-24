@@ -40,16 +40,16 @@ router.get(
         // Recent assignments
         const { data: recent } = await supabase
           .from("assets")
-          .select("asset_tag, name, status, created_at, profiles(full_name)")
+          .select("asset_tag, name, status, updated_at, profiles!assigned_to(full_name)")
           .eq("status", "assigned")
-          .order("created_at", { ascending: false })
+          .order("updated_at", { ascending: false })
           .limit(10);
 
         const formattedRecent = (recent || []).map(r => ({
           asset_tag: r.asset_tag,
           name: r.name,
           assigned_to: r.profiles?.full_name || "Unknown",
-          date: new Date(r.created_at).toISOString().split('T')[0]
+          date: new Date(r.updated_at || r.created_at).toISOString().split('T')[0]
         }));
 
         res.json({
